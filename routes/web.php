@@ -15,6 +15,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ia/recommendation/{action}/{service_id}', [QueueController::class, 'applyRecommendation'])->name('ia.apply');
     Route::post('/simulate/progress', [QueueController::class, 'simulateProgress'])->name('simulate.progress');
     Route::post('/system/reset', [QueueController::class, 'reset'])->name('system.reset');
+    Route::post('/user/{user_id}/role', [QueueController::class, 'updateUserRole'])->name('user.role');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

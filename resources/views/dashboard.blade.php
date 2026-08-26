@@ -623,6 +623,65 @@
                                 </div>
                             @endif
                         </div>
+
+                        <!-- User Management Panel -->
+                        <div class="glass-panel" style="margin-top: 1.5rem;">
+                            <h2 style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-heading); font-size: 1.25rem;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                Liste des Utilisateurs & Attribution des Rôles
+                            </h2>
+                            <div class="table-container">
+                                <table class="custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nom</th>
+                                            <th>E-mail</th>
+                                            <th>Rôle Actuel</th>
+                                            <th>Modifier le Rôle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($users as $user)
+                                            <tr>
+                                                <td><strong>{{ $user->name }}</strong></td>
+                                                <td><span style="font-family: var(--font-mono); font-size: 0.85rem;">{{ $user->email }}</span></td>
+                                                <td>
+                                                    @if($user->role === 'admin')
+                                                        <span class="badge badge-danger" style="background-color: var(--danger-bg); color: var(--danger-text)">Admin</span>
+                                                    @elseif($user->role === 'responsable')
+                                                        <span class="badge badge-warning" style="background-color: var(--warning-bg); color: var(--warning-text)">Responsable</span>
+                                                    @elseif($user->role === 'personnel_medical')
+                                                        <span class="badge badge-info" style="background-color: rgba(59,130,246,0.1); color: #2563eb">Médecin</span>
+                                                    @elseif($user->role === 'agent_accueil')
+                                                        <span class="badge badge-success" style="background-color: var(--success-bg); color: var(--success-text)">Accueil</span>
+                                                    @else
+                                                        <span class="badge badge-secondary" style="background-color: var(--bg-primary); color: var(--text-secondary)">Patient</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <!-- Only allow changing role if not the currently logged in admin -->
+                                                    @if($user->id !== auth()->id())
+                                                        <form action="{{ route('user.role', ['user_id' => $user->id]) }}" method="POST" style="margin: 0; display: flex; gap: 0.25rem; align-items: center;">
+                                                            @csrf
+                                                            <select name="role" class="form-select" style="padding: 0.25rem; font-size: 0.8rem; flex: 1; height: 32px; min-width: 110px;">
+                                                                <option value="patient" {{ $user->role === 'patient' ? 'selected' : '' }}>Patient</option>
+                                                                <option value="agent_accueil" {{ $user->role === 'agent_accueil' ? 'selected' : '' }}>Accueil</option>
+                                                                <option value="personnel_medical" {{ $user->role === 'personnel_medical' ? 'selected' : '' }}>Médecin</option>
+                                                                <option value="responsable" {{ $user->role === 'responsable' ? 'selected' : '' }}>Responsable</option>
+                                                                <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
+                                                            </select>
+                                                            <button type="submit" class="btn btn-primary btn-sm" style="padding: 0 0.5rem; font-size: 0.75rem; height: 32px;">Appliquer</button>
+                                                        </form>
+                                                    @else
+                                                        <span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">Votre compte (Actif)</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     @endif
 
                 </div>

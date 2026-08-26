@@ -36,6 +36,7 @@ class QueueController extends Controller
         $services = Service::all();
         $desks = Desk::all();
         $tickets = Ticket::orderBy('created_at', 'desc')->get();
+        $users = \App\Models\User::all();
 
         // 3. Dynamic Service Metrics
         $services = $services->map(function ($srv) use ($tickets, $desks) {
@@ -118,7 +119,7 @@ class QueueController extends Controller
         return view('dashboard', compact(
             'activeRole', 'selectedDeskId', 'services', 'desks', 'tickets', 
             'aiRecommendations', 'patientTicket', 'patientPosition', 'patientWaitTime',
-            'stats', 'liveMonitor', 'simulationLogs', 'notification'
+            'stats', 'liveMonitor', 'simulationLogs', 'notification', 'users'
         ));
     }
 
@@ -505,5 +506,27 @@ class QueueController extends Controller
             'time' => now()->format('H:i:s'),
         ]);
         Session::put('simulation_logs', array_slice($logs, 0, 15));
+    }
+
+    /**
+     * Update user role (admin only).
+     */
+    public function updateUserRole(Request $request, $userId)
+    {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Action non autorisée.');
+        }
+
+        $request->validate([
+            'role' => 'required|in:patient,agent_accueil,personnel_medical,responsable,admin',
+        ]);
+
+        $user = \App\Models\User::findOrFail($userId);
+        $user->update(['role' => $request->input('role')]);
+
+        $this->addLog("[Admin] Rôle de {$user->name} modifié en " . ucfirst($request->input('role')) . ".");
+        Session::flash('notification', ['text' => "Le rôle de {$user->name} a été modifié avec succès.", 'type' => 'success']);
+
+        return redirect()->back();
     }
 }
