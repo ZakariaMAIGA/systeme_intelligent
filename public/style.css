@@ -11,52 +11,52 @@
   --bg-secondary: #ffffff;
   --bg-card: rgba(255, 255, 255, 0.8);
   --border-color: rgba(226, 232, 240, 0.8);
-  
+
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #94a3b8;
-  
+
   /* Brand & Accents */
   --primary: #0d9488;          /* Medical Teal */
   --primary-hover: #0f766e;
   --primary-light: #ccfbf1;
   --primary-glow: rgba(13, 148, 136, 0.2);
-  
+
   --secondary: #3b82f6;        /* Hospital Blue */
   --secondary-glow: rgba(59, 130, 246, 0.2);
-  
+
   --success: #10b981;          /* Emerald Green */
   --success-bg: rgba(16, 185, 129, 0.1);
   --success-text: #065f46;
-  
+
   --warning: #f59e0b;          /* Warning Yellow */
   --warning-bg: rgba(245, 158, 11, 0.1);
   --warning-text: #92400e;
-  
+
   --danger: #ef4444;           /* Danger Red */
   --danger-bg: rgba(239, 68, 68, 0.1);
   --danger-text: #991b1b;
-  
+
   /* Priority (Urgent Cases) */
   --priority: #8b5cf6;         /* Purple for priority */
   --priority-bg: rgba(139, 92, 246, 0.1);
-  
+
   /* Glassmorphism */
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(255, 255, 255, 0.6);
   --glass-shadow: rgba(148, 163, 184, 0.1);
   --backdrop-blur: blur(16px);
-  
+
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-glow: 0 0 20px rgba(13, 148, 136, 0.15);
-  
+
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
   --radius-full: 9999px;
-  
+
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -66,34 +66,34 @@
   --bg-secondary: #0f172a;
   --bg-card: rgba(15, 23, 42, 0.8);
   --border-color: rgba(51, 65, 85, 0.5);
-  
+
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  
+
   --primary: #14b8a6;
   --primary-hover: #2dd4bf;
   --primary-light: #115e59;
   --primary-glow: rgba(20, 184, 166, 0.3);
-  
+
   --secondary: #60a5fa;
   --secondary-glow: rgba(96, 165, 250, 0.3);
-  
+
   --success: #34d399;
   --success-bg: rgba(52, 211, 153, 0.15);
   --success-text: #a7f3d0;
-  
+
   --warning: #fbbf24;
   --warning-bg: rgba(251, 191, 36, 0.15);
   --warning-text: #fde68a;
-  
+
   --danger: #f87171;
   --danger-bg: rgba(248, 113, 113, 0.15);
   --danger-text: #fca5a5;
 
   --priority: #a78bfa;
   --priority-bg: rgba(167, 139, 250, 0.15);
-  
+
   --glass-bg: rgba(15, 23, 42, 0.6);
   --glass-border: rgba(30, 41, 59, 0.7);
   --glass-shadow: rgba(0, 0, 0, 0.3);
@@ -198,6 +198,9 @@ body {
   align-items: center;
   gap: 1rem;
 }
+.profile-modal[hidden] {
+  display: none;
+}
 
 .role-selector {
   display: flex;
@@ -205,6 +208,234 @@ body {
   padding: 0.25rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
+}
+.profile-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(5px);
+}
+.profile-modal-panel {
+  position: relative;
+  width: min(920px, 100%);
+  max-height: min(92vh, 780px);
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-lg);
+  animation: profileModalIn 0.2s ease-out;
+}
+.profile-modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  grid-column: 1 / -1;
+}
+.profile-modal-header h2 {
+  font-family: var(--font-heading);
+  font-size: 1.45rem;
+}
+.profile-modal-header p:last-child {
+  margin-top: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+.profile-modal-kicker {
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.profile-modal-close {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+.profile-modal-close:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.profile-modal-form {
+  display: grid;
+  gap: 0.55rem;
+  padding-top: 1.25rem;
+  margin-top: 0;
+  border-top: 1px solid var(--border-color);
+}
+.profile-modal-form h3 {
+  margin-bottom: 0.35rem;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+}
+.profile-modal-form label {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.profile-modal-form .btn {
+  justify-self: start;
+  margin-top: 0.5rem;
+}
+.profile-form-message {
+  grid-column: 1 / -1;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+.profile-form-success {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+.profile-form-error {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+.profile-modal-open {
+  overflow: hidden;
+}
+
+.payment-page {
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 84px);
+}
+
+.payment-card {
+  width: min(520px, 100%);
+}
+
+.payment-card h1 {
+  margin-top: 0.5rem;
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+}
+
+.payment-intro {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.payment-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-full);
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.payment-amount {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1.5rem 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+}
+
+.payment-amount span {
+  color: var(--text-secondary);
+}
+
+.payment-amount strong {
+  color: var(--primary);
+  font-size: 1.25rem;
+}
+
+.orange-money-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 2px solid #ff7900;
+  border-radius: var(--radius-md);
+}
+
+.orange-money-logo {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.6rem;
+  background: #ff7900;
+  color: white;
+  font-weight: 800;
+}
+
+.orange-money-choice div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.orange-money-choice div span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.payment-selected {
+  color: #c2410c;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.payment-notice {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.payment-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.payment-submit {
+  width: 100%;
+  margin-top: 1rem;
+}
+@keyframes profileModalIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 700px) {
+  .profile-modal-panel {
+    grid-template-columns: 1fr;
+    max-height: 94vh;
+    padding: 1.25rem;
+  }
+
+  .profile-modal-header,
+  .profile-form-message {
+    grid-column: auto;
+  }
+
+  .profile-modal-form + .profile-modal-form {
+    margin-top: 0.75rem;
+  }
 }
 
 .role-tab {

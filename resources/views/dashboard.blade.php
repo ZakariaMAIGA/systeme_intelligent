@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hôpital du Point G - Gestion de Files d'Attente</title>
+    <title>TicketRapide Point G</title>
     <link rel="stylesheet" href="{{ asset('style.css') }}">
     <style>
         /* Small inline fixes */
@@ -28,9 +28,9 @@
                 <svg class="header-logo" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
                     <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                 </svg>
-                <span>Hôpital du Point G <span>• Files d'Attente</span></span>
+                <span>TicketRapide Point G</span>
             </a>
-            
+
             <div class="navbar-actions">
                 <!-- Logged in user info -->
                 @auth
@@ -67,6 +67,12 @@
                     <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/></svg>
                 </button>
 
+                @auth
+                    <button type="button" class="btn btn-secondary btn-sm" title="Modifier mon profil" onclick="openProfileModal()">
+                        Mon profil
+                    </button>
+                @endauth
+
                 <!-- Log out button -->
                 @auth
                     <form action="{{ route('logout') }}" method="POST" style="margin: 0; display: inline-flex;">
@@ -81,13 +87,13 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            
+
             <!-- Dashboard Grid -->
             <div class="grid-cols-3">
-                
+
                 <!-- Left Column: Active Role Panel -->
                 <div style="display: flex; flex-direction: column; gap: 2rem;">
-                    
+
                     <!-- --- ROLE: PATIENT --- -->
                     @if($activeRole === 'patient')
                         <div class="dashboard-header">
@@ -107,7 +113,7 @@
                                     Service : {{ $srv?->nom }}
                                 </div>
                                 <div style="margin-bottom: 1rem;">
-                                    Statut : 
+                                    Statut :
                                     @if($patientTicket->status === 'en_attente')
                                         <span class="badge badge-warning">En attente</span>
                                     @elseif($patientTicket->status === 'appele')
@@ -218,7 +224,7 @@
                                             </div>
                                         </div>
 
-                                        <form action="{{ route('ticket.take') }}" method="POST" style="margin-top: 0.5rem;">
+                                        <form action="{{ auth()->user()->role === 'patient' ? route('ticket.payment.start') : route('ticket.take') }}" method="POST" style="margin-top: 0.5rem;">
                                             @csrf
                                             <input type="hidden" name="service_id" value="{{ $srv->id }}">
                                             <input type="hidden" name="priority" value="normal">
@@ -245,7 +251,7 @@
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
                                 Enregistrer un nouveau Patient
                             </h2>
-                            
+
                             <form action="{{ route('ticket.take') }}" method="POST">
                                 @csrf
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -285,7 +291,7 @@
                         </div>
 
                         <div>
-                            <h2 style="margin-bottom: 1rem;">Files d'attente actuelles</h2>
+                            <h2 style="margin-bottom: 1rem;">Situation actuelle</h2>
                             <div class="table-container">
                                 <table class="custom-table">
                                     <thead>
@@ -384,7 +390,7 @@
                                             <div class="ticket-number" style="font-size: 2.5rem;">{{ $activeTicket->numero }}</div>
                                             <div style="font-weight: 700; font-size: 1.1rem;">{{ $activeTicket->patient_name }}</div>
                                             <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                                                Priorité : 
+                                                Priorité :
                                                 @if($activeTicket->priority === 'prioritaire')
                                                     <span style="color: var(--priority); font-weight: bold;">PRIORITAIRE</span>
                                                 @else
@@ -395,7 +401,7 @@
                                                 Appelé à : {{ $activeTicket->called_at ? $activeTicket->called_at->format('H:i:s') : '--:--' }}
                                             </div>
                                             <div style="margin-top: 0.75rem;">
-                                                Statut : 
+                                                Statut :
                                                 @if($activeTicket->status === 'appele')
                                                     <span class="badge badge-info voice-indicator">Appelé</span>
                                                 @else
@@ -473,7 +479,7 @@
                                     <div class="stats-card-lbl">Tickets générés</div>
                                 </div>
                             </div>
-                            
+
                             <div class="stats-card-mini">
                                 <div class="stats-card-icon" style="background-color: rgba(59, 130, 246, 0.1); color: var(--secondary);">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -491,6 +497,26 @@
                                 <div class="stats-card-info">
                                     <div class="stats-card-val">{{ $stats['patients_consulted'] }}</div>
                                     <div class="stats-card-lbl">Patients traités</div>
+                                </div>
+                            </div>
+
+                            <div class="stats-card-mini">
+                                <div class="stats-card-icon" style="background-color: var(--warning-bg); color: var(--warning);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><path d="M6 15h.01"/><path d="M10 15h4"/></svg>
+                                </div>
+                                <div class="stats-card-info">
+                                    <div class="stats-card-val">{{ number_format($stats['total_paid'], 0, ',', ' ') }} F CFA</div>
+                                    <div class="stats-card-lbl">Total payé</div>
+                                </div>
+                            </div>
+
+                            <div class="stats-card-mini">
+                                <div class="stats-card-icon" style="background-color: var(--secondary-glow); color: var(--secondary);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+                                </div>
+                                <div class="stats-card-info">
+                                    <div class="stats-card-val">{{ $stats['paying_patients'] }}</div>
+                                    <div class="stats-card-lbl">Patients payeurs</div>
                                 </div>
                             </div>
                         </div>
@@ -566,6 +592,57 @@
                             </div>
                         </div>
 
+                        <div class="dashboard-grid">
+                            <div class="glass-panel">
+                                <h2 style="margin-bottom: 1rem;">Ajouter un service</h2>
+                                <form action="{{ route('service.store') }}" method="POST">
+                                    @csrf
+                                    <div class="form-group">
+                                        <label class="form-label" for="service-nom">Nom du service</label>
+                                        <input id="service-nom" name="nom" class="form-input" placeholder="Ex. Pédiatrie" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="service-code">Code</label>
+                                        <input id="service-code" name="code" class="form-input" placeholder="Ex. PED" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="service-description">Description</label>
+                                        <input id="service-description" name="description" class="form-input" placeholder="Description courte">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="service-time">Temps moyen (minutes)</label>
+                                        <input id="service-time" name="temps_moyen_traitement" type="number" min="1" max="240" value="15" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="service-icon">Icône</label>
+                                        <input id="service-icon" name="icon" class="form-input" placeholder="Ex. 🩺" maxlength="10">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Ajouter le service</button>
+                                </form>
+                            </div>
+
+                            <div class="glass-panel">
+                                <h2 style="margin-bottom: 1rem;">Ajouter un poste</h2>
+                                <form action="{{ route('desk.store') }}" method="POST">
+                                    @csrf
+                                    <div class="form-group">
+                                        <label class="form-label" for="desk-name">Nom du poste</label>
+                                        <input id="desk-name" name="name" class="form-input" placeholder="Ex. Poste 8 (Pédiatrie)" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="desk-service">Service affecté</label>
+                                        <select id="desk-service" name="service_id" class="form-select">
+                                            <option value="">Affecter plus tard</option>
+                                            @foreach($services as $service)
+                                                <option value="{{ $service->id }}">{{ $service->nom }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Ajouter le poste</button>
+                                </form>
+                            </div>
+                        </div>
+
                         <!-- Reset system -->
                         <form action="{{ route('system.reset') }}" method="POST" onsubmit="return confirm('Voulez-vous vraiment réinitialiser tout le système ?')">
                             @csrf
@@ -580,6 +657,7 @@
                         <div class="dashboard-header">
                           <h1>Console Assistant IA QueueOptimizer™</h1>
                           <p>L'intelligence artificielle analyse le flux historique de l'Hôpital du Point G et gère les files.</p>
+                                                    <a href="{{ route('admin.users.index') }}" class="btn btn-primary btn-sm" style="margin-top: 1rem; display: inline-flex;">Gérer les utilisateurs</a>
                         </div>
 
                         <div class="glass-panel ai-card">
@@ -688,7 +766,7 @@
 
                 <!-- Right Column: Live TV Monitor + Simulator -->
                 <div style="display: flex; flex-direction: column; gap: 2rem;">
-                    
+
                     <!-- Live TV screen -->
                     <div class="glass-panel" style="border: 2px solid var(--secondary);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
@@ -781,6 +859,49 @@
         </main>
     </div>
 
+    @auth
+        <div id="profile-modal" class="profile-modal" hidden aria-hidden="true">
+            <div class="profile-modal-backdrop" onclick="closeProfileModal()"></div>
+            <section class="profile-modal-panel" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+                <div class="profile-modal-header">
+                    <div>
+                        <p class="profile-modal-kicker">Mon espace</p>
+                        <h2 id="profile-modal-title">Modifier mon profil</h2>
+                        <p>Actualisez vos informations sans quitter votre tableau de bord.</p>
+                    </div>
+                    <button type="button" class="profile-modal-close" onclick="closeProfileModal()" aria-label="Fermer">&times;</button>
+                </div>
+
+                <div id="profile-success" class="profile-form-message profile-form-success" hidden></div>
+                <div id="profile-error" class="profile-form-message profile-form-error" hidden></div>
+
+                <form id="profile-information-form" class="profile-modal-form" method="POST" action="{{ route('profile.update') }}">
+                    @csrf
+                    @method('PATCH')
+                    <h3>Informations personnelles</h3>
+                    <label for="profile-name">Nom complet</label>
+                    <input id="profile-name" class="form-input" type="text" name="name" value="{{ auth()->user()->name }}" required>
+                    <label for="profile-email">Adresse e-mail</label>
+                    <input id="profile-email" class="form-input" type="email" name="email" value="{{ auth()->user()->email }}" required>
+                    <button type="submit" class="btn btn-primary">Enregistrer les informations</button>
+                </form>
+
+                <form id="profile-password-form" class="profile-modal-form" method="POST" action="{{ route('password.update') }}">
+                    @csrf
+                    @method('PUT')
+                    <h3>Changer le mot de passe</h3>
+                    <label for="profile-current-password">Mot de passe actuel</label>
+                    <input id="profile-current-password" class="form-input" type="password" name="current_password" autocomplete="current-password" required>
+                    <label for="profile-password">Nouveau mot de passe</label>
+                    <input id="profile-password" class="form-input" type="password" name="password" autocomplete="new-password" required>
+                    <label for="profile-password-confirmation">Confirmer le nouveau mot de passe</label>
+                    <input id="profile-password-confirmation" class="form-input" type="password" name="password_confirmation" autocomplete="new-password" required>
+                    <button type="submit" class="btn btn-secondary">Mettre à jour le mot de passe</button>
+                </form>
+            </section>
+        </div>
+    @endauth
+
     <!-- Synthesis Vocal and Audio Script -->
     <script>
         // Set light/dark theme on startup
@@ -805,6 +926,70 @@
                 document.getElementById('theme-icon-sun').style.display = 'none';
             }
         }
+
+        const profileModal = document.getElementById('profile-modal');
+        const profileSuccess = document.getElementById('profile-success');
+        const profileError = document.getElementById('profile-error');
+
+        function openProfileModal() {
+            if (!profileModal) return;
+            profileModal.hidden = false;
+            profileModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('profile-modal-open');
+            document.getElementById('profile-name')?.focus();
+        }
+
+        function closeProfileModal() {
+            if (!profileModal) return;
+            profileModal.hidden = true;
+            profileModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('profile-modal-open');
+        }
+
+        function showProfileMessage(element, message) {
+            element.textContent = message;
+            element.hidden = false;
+        }
+
+        function hideProfileMessages() {
+            profileSuccess.hidden = true;
+            profileError.hidden = true;
+        }
+
+        async function submitProfileForm(event) {
+            event.preventDefault();
+            hideProfileMessages();
+
+            const form = event.currentTarget;
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: new FormData(form),
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                const messages = Object.values(data.errors || {}).flat();
+                showProfileMessage(profileError, messages.join(' ') || 'Impossible d’enregistrer les modifications.');
+                return;
+            }
+
+            if (form.id === 'profile-information-form') {
+                document.querySelector('.navbar-actions span[style*="font-weight: bold"]')?.replaceChildren(document.createTextNode(data.user.name));
+            } else {
+                form.reset();
+            }
+            showProfileMessage(profileSuccess, data.message);
+        }
+
+        document.getElementById('profile-information-form')?.addEventListener('submit', submitProfileForm);
+        document.getElementById('profile-password-form')?.addEventListener('submit', submitProfileForm);
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeProfileModal();
+        });
 
         // Voice call options
         let voiceEnabled = localStorage.getItem('voice_enabled') !== 'false';
@@ -853,7 +1038,7 @@
             @if(session('voice_call'))
                 const code = "{{ session('voice_call')['code'] }}";
                 const desk = "{{ session('voice_call')['desk'] }}";
-                
+
                 if (voiceEnabled) {
                     playChime();
                     setTimeout(() => {

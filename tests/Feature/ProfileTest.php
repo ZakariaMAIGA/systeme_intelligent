@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -59,6 +60,39 @@ class ProfileTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertNotNull($user->refresh()->email_verified_at);
+    }
+
+    public function test_profile_information_can_be_updated_without_leaving_the_dashboard(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->withHeaders(['Accept' => 'application/json'])
+            ->patch('/profile', [
+                'name' => 'Utilisateur Modifie',
+                'email' => 'modifie@example.com',
+            ]);
+
+        $response->assertOk()->assertJsonPath('user.name', 'Utilisateur Modifie');
+        $this->assertSame('modifie@example.com', $user->refresh()->email);
+    }
+
+    public function test_password_can_be_updated_without_leaving_the_dashboard(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->withHeaders(['Accept' => 'application/json'])
+            ->put('/password', [
+                'current_password' => 'password',
+                'password' => 'new-password-123',
+                'password_confirmation' => 'new-password-123',
+            ]);
+
+        $response->assertOk()->assertJson(['message' => 'Votre mot de passe a été mis à jour.']);
+        $this->assertTrue(Hash::check('new-password-123', $user->refresh()->password));
     }
 
     public function test_user_can_delete_their_account(): void

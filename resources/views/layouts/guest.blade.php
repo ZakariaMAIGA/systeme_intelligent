@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>Hôpital du Point G | Connexion</title>
+        <title>TicketRapide Point G | Connexion</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -17,19 +17,19 @@
     <body class="guest-page">
         <div class="guest-shell">
             <aside class="guest-brand-panel">
-                <a href="/" class="guest-brand" aria-label="Accueil Hôpital du Point G">
+                <a href="/" class="guest-brand" aria-label="Accueil TicketRapide Point G">
                     <span class="guest-brand-mark" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M22 12h-4l-3 8L9 4l-3 8H2" />
                         </svg>
                     </span>
-                    <span>Hôpital du Point G</span>
+                    <span>TicketRapide Point G</span>
                 </a>
 
                 <div class="guest-brand-copy">
                     <p class="guest-eyebrow">Espace professionnel</p>
                     <h1>Une attente mieux organisée, des soins plus sereins.</h1>
-                    <p>Accédez à votre espace pour piloter les files d'attente et accompagner chaque patient avec précision.</p>
+                    <p>Accédez à votre espace pour accompagner chaque patient avec précision.</p>
                 </div>
 
                 <div class="guest-status"><span></span> Service de gestion opérationnel</div>
@@ -44,7 +44,7 @@
                     </div>
                     {{ $slot }}
                 </div>
-                <p class="guest-footer">Hôpital du Point G <span aria-hidden="true">•</span> Gestion de files d'attente</p>
+                <p class="guest-footer">TicketRapide Point G <span aria-hidden="true">•</span> Service hospitalier numérique</p>
             </main>
         </div>
     </body>

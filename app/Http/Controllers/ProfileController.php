@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,7 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request): RedirectResponse|JsonResponse
     {
         $request->user()->fill($request->validated());
 
@@ -33,6 +34,13 @@ class ProfileController extends Controller
         }
 
         $request->user()->save();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Vos informations ont été mises à jour.',
+                'user' => $request->user()->only(['name', 'email']),
+            ]);
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

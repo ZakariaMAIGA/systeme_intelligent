@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use App\Models\Ticket;
 use App\Models\Desk;
+use App\Models\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
 class QueueController extends Controller
@@ -100,6 +102,8 @@ class QueueController extends Controller
             'total_tickets' => Ticket::count(),
             'patients_consulted' => Ticket::where('status', 'termine')->count(),
             'avg_wait_time' => $this->getAverageWaitTime(),
+            'total_paid' => Payment::where('status', 'paid')->sum('amount'),
+            'paying_patients' => Payment::where('status', 'paid')->distinct('user_id')->count('user_id'),
         ];
 
         // 7. Called/Current board
@@ -124,11 +128,90 @@ class QueueController extends Controller
     }
 
     /**
+     * Start the demo Orange Money payment flow for a patient ticket.
+     */
+    public function startTicketPayment(Request $request)
+    {
+        if (auth()->user()->role !== 'patient') {
+            abort(403, 'Le paiement est réservé aux patients.');
+        }
+
+        $validated = $request->validate([
+            'service_id' => 'required|exists:services,id',
+            'priority' => 'required|in:normal,prioritaire',
+            'patient_name' => 'required|string|max:100',
+        ]);
+
+        Session::put('pending_ticket', $validated);
+
+        return redirect()->route('ticket.payment');
+    }
+
+    /**
+     * Display the simulated Orange Money payment page.
+     */
+    public function showTicketPayment()
+    {
+        abort_unless(auth()->user()->role === 'patient', 403, 'Action non autorisée.');
+
+        $pendingTicket = Session::get('pending_ticket');
+        abort_unless($pendingTicket, 404, 'Aucun ticket en attente de paiement.');
+
+        $service = Service::findOrFail($pendingTicket['service_id']);
+
+        return view('tickets.payment', [
+            'pendingTicket' => $pendingTicket,
+            'service' => $service,
+            'amount' => 1000,
+        ]);
+    }
+
+    /**
+     * Confirm the fake payment and create the ticket.
+     */
+    public function confirmTicketPayment(Request $request)
+    {
+        if (auth()->user()->role !== 'patient') {
+            abort(403, 'Action non autorisée.');
+        }
+
+        $request->validate([
+            'payment_method' => 'required|in:orange_money',
+            'demo_confirmation' => 'accepted',
+        ]);
+
+        $pendingTicket = Session::pull('pending_ticket');
+        if (!$pendingTicket) {
+            return redirect()->route('dashboard')->with('notification', [
+                'text' => 'Votre demande de ticket a expiré. Veuillez recommencer.',
+                'type' => 'info',
+            ]);
+        }
+
+        DB::transaction(function () use ($pendingTicket) {
+            $ticket = $this->createTicket($pendingTicket, 'Paiement Orange Money de démonstration confirmé');
+
+            Payment::create([
+                'user_id' => auth()->id(),
+                'ticket_id' => $ticket->id,
+                'amount' => 1000,
+                'currency' => 'XOF',
+                'payment_method' => 'orange_money',
+                'status' => 'paid',
+                'reference' => 'DEMO-' . strtoupper(bin2hex(random_bytes(6))),
+                'paid_at' => now(),
+            ]);
+        });
+
+        return redirect()->route('dashboard');
+    }
+
+    /**
      * Take a new virtual ticket.
      */
     public function takeTicket(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['patient', 'agent_accueil', 'admin'])) {
+        if (!in_array(auth()->user()->role, ['agent_accueil', 'admin'])) {
             abort(403, 'Action non autorisée.');
         }
         $request->validate([
@@ -138,22 +221,35 @@ class QueueController extends Controller
             'patient_folder' => 'nullable|string|max:50',
         ]);
 
-        $service = Service::find($request->input('service_id'));
-        
-        // Count tickets for today
+        $this->createTicket([
+            'patient_name' => $request->input('patient_name'),
+            'patient_folder' => $request->input('patient_folder'),
+            'service_id' => $request->input('service_id'),
+            'priority' => $request->input('priority'),
+        ]);
+
+        return redirect()->back();
+    }
+
+    private function createTicket(array $ticketData, ?string $paymentLog = null): Ticket
+    {
+        $service = Service::findOrFail($ticketData['service_id']);
         $count = Ticket::where('service_id', $service->id)->count() + 1;
         $numero = $service->code . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
 
         $ticket = Ticket::create([
             'numero' => $numero,
-            'patient_name' => $request->input('patient_name'),
-            'patient_folder' => $request->input('patient_folder'),
+            'patient_name' => $ticketData['patient_name'],
+            'patient_folder' => $ticketData['patient_folder'] ?? null,
             'service_id' => $service->id,
             'status' => 'en_attente',
-            'priority' => $request->input('priority'),
+            'priority' => $ticketData['priority'],
         ]);
 
         $this->addLog("Ticket généré : {$numero} pour {$ticket->patient_name} (" . ($ticket->priority === 'prioritaire' ? 'Prioritaire' : 'Normal') . ")");
+        if ($paymentLog) {
+            $this->addLog("{$paymentLog} pour {$ticket->patient_name}.");
+        }
 
         $activeRole = Session::get('active_role', 'patient');
         if ($activeRole === 'patient') {
@@ -163,7 +259,7 @@ class QueueController extends Controller
             Session::flash('notification', ['text' => "Ticket {$numero} créé pour le patient {$ticket->patient_name}.", 'type' => 'success']);
         }
 
-        return redirect()->back();
+        return $ticket;
     }
 
     /**
@@ -312,6 +408,53 @@ class QueueController extends Controller
         $desk->save();
 
         return redirect()->back();
+    }
+
+    /**
+     * Create a service from the management dashboard.
+     */
+    public function storeService(Request $request)
+    {
+        if (!in_array(auth()->user()->role, ['responsable', 'admin'])) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        $validated = $request->validate([
+            'nom' => ['required', 'string', 'max:100'],
+            'code' => ['required', 'string', 'max:20', 'alpha_dash', 'unique:services,code'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'temps_moyen_traitement' => ['required', 'integer', 'min:1', 'max:240'],
+            'icon' => ['nullable', 'string', 'max:10'],
+        ]);
+
+        Service::create($validated + ['statut' => 'normal']);
+
+        return redirect()->back()->with('notification', [
+            'text' => "Le service {$validated['nom']} a été ajouté.",
+            'type' => 'success',
+        ]);
+    }
+
+    /**
+     * Create a desk from the management dashboard.
+     */
+    public function storeDesk(Request $request)
+    {
+        if (!in_array(auth()->user()->role, ['responsable', 'admin'])) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'service_id' => ['nullable', 'exists:services,id'],
+        ]);
+
+        Desk::create($validated + ['active' => true]);
+
+        return redirect()->back()->with('notification', [
+            'text' => "Le poste {$validated['name']} a été ajouté.",
+            'type' => 'success',
+        ]);
     }
 
     /**

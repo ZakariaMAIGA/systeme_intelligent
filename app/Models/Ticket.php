@@ -23,4 +23,9 @@ class Ticket extends Model
     {
         return $this->belongsTo(Desk::class);
     }
+
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
 }
